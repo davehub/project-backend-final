@@ -37,6 +37,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/equipments', equipmentRoutes);
 
+app.use((req,res)=>{
+  res.send('Bienvenue sur l\'API de gestion de parc informatique');
+});
+
 // Route de test
 app.get('/', (req, res) => {
   res.send('API de gestion de parc informatique en cours d\'exécution...');
