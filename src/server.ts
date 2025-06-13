@@ -4,6 +4,7 @@ import cors from 'cors';
 import connectDB from './config/db';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
+import maintenanceRoutes from './routes/maintenanceRoutes';
 import equipmentRoutes from './routes/equipmentRoutes';
 
 dotenv.config(); // Charge les variables d'environnement
@@ -36,6 +37,7 @@ app.use(cors({
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/equipments', equipmentRoutes);
+app.use('/api/maintenances', maintenanceRoutes);
 
 app.use((req,res)=>{
   res.send('Bienvenue sur l\'API de gestion de parc informatique');
