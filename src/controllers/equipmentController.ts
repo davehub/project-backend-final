@@ -38,7 +38,7 @@ export const getEquipments = async (req: Request, res: Response) => {
 // @desc    Create a new equipment
 // @route   POST /api/equipments
 // @access  Private/Admin
-const createEquipment = async (req: Request, res: Response) => {
+export const createEquipment = async (req: Request, res: Response) => {
   try {
     // Seuls les admins peuvent créer un équipement
     if (req.user?.role !== 'admin') {
@@ -69,9 +69,7 @@ const createEquipment = async (req: Request, res: Response) => {
       assignedTo: assignedUserId, // Utilise l'ID de l'utilisateur
       location,
       notes,
-      createdBy: req.user!._id,
-      updatedBy: req.user?._id
-      // L'ID de l'utilisateur admin connecté
+      createdBy: req.user!._id, // L'ID de l'utilisateur admin connecté
     });
 
     const savedEquipment = await equipment.save();
@@ -94,21 +92,23 @@ const createEquipment = async (req: Request, res: Response) => {
   }
 };
 
+/* Duplicate updateEquipment function removed to resolve redeclaration error. */
 
-const getEquipmentById = async (req: Request, res: Response) => {
+export const getEquipmentById = async (req: Request, res: Response) => {
   try {
     const equipment = await Equipment.findById(req.params.id)
       .populate('assignedTo', 'username email')
       .populate('createdBy', 'username email');
 
-    if (!equipment) {
+    if (!equipment) { 
       return res.status(404).json({ message: 'Équipement non trouvé.' });
     }
 
     // Si non admin, ne peut voir que son propre équipement
     if (
       req.user?.role !== 'admin' &&
-      equipment.assignedTo?.toString() !== req.user?._id.toString()
+      equipment.assignedTo &&
+      equipment.assignedTo.toString() !== req.user?._id.toString()
     ) {
       return res.status(403).json({ message: 'Accès refusé à cet équipement.' });
     }
@@ -148,11 +148,11 @@ export const updateEquipment = async (req: Request, res: Response) => {
     let assignedToId = assignedTo ? equipment.assignedTo : undefined;
 
     if (assignedTo) {
-      const userToAssign = await User.findOne({ username: assignedTo }) as HydratedDocument<any> | null;
+      const userToAssign = await User.findOne({ username: assignedTo });
       if (!userToAssign) {
         return res.status(400).json({ message: 'Utilisateur attribué non trouvé.' });
       }
-      assignedToId = userToAssign._id;
+      assignedToId = (userToAssign as { _id: typeof equipment.assignedTo })._id;
     } else {
       // Si assignedTo est null ou vide, désassigner l'équipement
       assignedToId = undefined;
@@ -169,7 +169,7 @@ export const updateEquipment = async (req: Request, res: Response) => {
     equipment.assignedTo = assignedToId;
     equipment.location = location || equipment.location;
     equipment.notes = notes !== undefined ? notes : equipment.notes; // Permet de mettre notes à vide
-    equipment.updatedBy = req.user?._id ? new (require('mongoose').Types.ObjectId)(req.user._id) : undefined;
+    equipment.id ? new (require('mongoose').Types.ObjectId)(req.user._id) : undefined;
 
     const updatedEquipment = await equipment.save();
     res.json(updatedEquipment);
